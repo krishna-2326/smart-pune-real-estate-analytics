@@ -1,0 +1,71 @@
+{
+    "best_model": "XGBoost",
+    "best_r2": 0.996666431427002,
+    "best_mae": 397299.46875,
+    "models": [
+        {
+            "name": "XGBoost",
+            "r2_score": 0.996666431427002,
+            "mae": 397299.46875
+        },
+        {
+            "name": "Random Forest",
+            "r2_score": 0.9962443854078379,
+            "mae": 414236.76678113744
+        },
+        {
+            "name": "Linear Regression",
+            "r2_score": 0.7717667282513652,
+            "mae": 3606717.535015152
+        }
+    ],
+    "feature_importances": [
+        {
+            "feature": "Square Feet",
+            "importance": 0.5813801884651184
+        },
+        {
+            "feature": "Bedrooms",
+            "importance": 0.24886171519756317
+        },
+        {
+            "feature": "Location (Encoded)",
+            "importance": 0.14376364648342133
+        },
+        {
+            "feature": "Sqft x Baths Interaction",
+            "importance": 0.01693086512386799
+        },
+        {
+            "feature": "Year Built",
+            "importance": 0.006879864260554314
+        },
+        {
+            "feature": "Has Garage",
+            "importance": 0.0010940736392512918
+        },
+        {
+            "feature": "Sqft per Room",
+            "importance": 0.0008229355444200337
+        },
+        {
+            "feature": "Bathrooms",
+            "importance": 0.00026668928330764174
+        },
+        {
+            "feature": "Property Age",
+            "importance": 0.0
+        },
+        {
+            "feature": "Sqft x Beds Interaction",
+            "importance": 0.0
+        }
+    ],
+    "areas": [
+        "Hinjewadi",
+        "Kalyani Nagar",
+        "Koregaon Park",
+        "Pimpri-Chinchwad",
+        "Viman Nagar"
+    ]
+}
