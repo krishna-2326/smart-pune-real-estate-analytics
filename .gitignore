@@ -1,0 +1,13 @@
+# Frontend dependencies & builds
+house-price-predictor/frontend/node_modules/
+house-price-predictor/frontend/dist/
+.DS_Store
+*.log
+
+# Python cache & virtualenvs
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.env
