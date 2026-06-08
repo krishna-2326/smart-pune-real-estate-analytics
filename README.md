@@ -1,5 +1,7 @@
 # Smart Pune Real Estate Analytics Platform 🏠📈
 
+**Live Demo**: [https://smart-pune-real-estate-analytics.vercel.app/](https://smart-pune-real-estate-analytics.vercel.app/)
+
 A high-performance, full-stack real estate analytics dashboard and machine learning valuation engine for Pune properties. This platform allows users to estimate property prices using an advanced XGBoost regression model and explore location benchmarks, historical trends, side-by-side area comparisons, and budget-based investment options.
 
 ---
