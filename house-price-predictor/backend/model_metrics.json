@@ -1,64 +1,64 @@
 {
     "best_model": "XGBoost",
-    "best_r2": 0.996666431427002,
-    "best_mae": 397299.46875,
+    "best_r2": 0.9740709066390991,
+    "best_mae": 1124215.75,
     "models": [
         {
             "name": "XGBoost",
-            "r2_score": 0.996666431427002,
-            "mae": 397299.46875
+            "r2_score": 0.9740709066390991,
+            "mae": 1124215.75
         },
         {
             "name": "Random Forest",
-            "r2_score": 0.9962443854078379,
-            "mae": 414236.76678113744
+            "r2_score": 0.9730649689197023,
+            "mae": 1145310.1397159004
         },
         {
             "name": "Linear Regression",
-            "r2_score": 0.7717667282513652,
-            "mae": 3606717.535015152
+            "r2_score": 0.7366602898472154,
+            "mae": 3767680.69220683
         }
     ],
     "feature_importances": [
         {
-            "feature": "Square Feet",
-            "importance": 0.5813801884651184
+            "feature": "Sqft x Beds Interaction",
+            "importance": 0.40186014771461487
         },
         {
             "feature": "Bedrooms",
-            "importance": 0.24886171519756317
+            "importance": 0.24117134511470795
+        },
+        {
+            "feature": "Square Feet",
+            "importance": 0.23072876036167145
         },
         {
             "feature": "Location (Encoded)",
-            "importance": 0.14376364648342133
+            "importance": 0.059892404824495316
         },
         {
             "feature": "Sqft x Baths Interaction",
-            "importance": 0.01693086512386799
-        },
-        {
-            "feature": "Year Built",
-            "importance": 0.006879864260554314
-        },
-        {
-            "feature": "Has Garage",
-            "importance": 0.0010940736392512918
-        },
-        {
-            "feature": "Sqft per Room",
-            "importance": 0.0008229355444200337
-        },
-        {
-            "feature": "Bathrooms",
-            "importance": 0.00026668928330764174
+            "importance": 0.051452264189720154
         },
         {
             "feature": "Property Age",
-            "importance": 0.0
+            "importance": 0.005263073369860649
         },
         {
-            "feature": "Sqft x Beds Interaction",
-            "importance": 0.0
+            "feature": "Year Built",
+            "importance": 0.004642583895474672
+        },
+        {
+            "feature": "Sqft per Room",
+            "importance": 0.0035018238704651594
+        },
+        {
+            "feature": "Has Garage",
+            "importance": 0.001483131549321115
+        },
+        {
+            "feature": "Bathrooms",
+            "importance": 4.4624512156588025e-06
         }
     ],
     "areas": [

@@ -71,22 +71,27 @@ def main():
         pickle.dump(scaler, f)
     print(f"Saved StandardScaler to {scaler_path}")
     
-    # Convert scaled arrays back to dataframes for model fitting if needed (especially for XGBoost with feature names)
     X_train_scaled_df = pd.DataFrame(X_train_scaled, columns=feature_cols)
     X_test_scaled_df = pd.DataFrame(X_test_scaled, columns=feature_cols)
     
-    # 5. Define Models
+    # 5. Define Models with Regularization to prevent overfitting
     models = {
         "XGBoost": xgb.XGBRegressor(
-            n_estimators=150, 
-            learning_rate=0.08, 
-            max_depth=6, 
+            n_estimators=120, 
+            learning_rate=0.07, 
+            max_depth=4,             # Limit depth to prevent complex overfitting
+            subsample=0.8,           # Use 80% of rows for each tree
+            colsample_bytree=0.8,    # Use 80% of columns for each tree
+            reg_lambda=15.0,         # L2 regularization strength
+            reg_alpha=5.0,           # L1 regularization strength
             random_state=42,
             n_jobs=-1
         ),
         "Random Forest": RandomForestRegressor(
             n_estimators=100, 
-            max_depth=12,
+            max_depth=8,             # Limit depth to control complexity
+            min_samples_split=12,    # Minimum samples required to split node
+            min_samples_leaf=6,      # Minimum samples required at leaf node
             random_state=42,
             n_jobs=-1
         ),
@@ -100,26 +105,31 @@ def main():
     for name, model in models.items():
         print(f"Training {name}...")
         model.fit(X_train_scaled_df, y_train)
-        preds = model.predict(X_test_scaled_df)
         
-        r2 = r2_score(y_test, preds)
-        mae = mean_absolute_error(y_test, preds)
+        # Training evaluation
+        train_preds = model.predict(X_train_scaled_df)
+        train_r2 = r2_score(y_train, train_preds)
         
-        print(f"{name} -> R2: {r2:.4f}, MAE: {mae:.2f}")
+        # Testing evaluation
+        test_preds = model.predict(X_test_scaled_df)
+        test_r2 = r2_score(y_test, test_preds)
+        test_mae = mean_absolute_error(y_test, test_preds)
+        
+        print(f"{name} -> Train R2: {train_r2:.4f}, Test R2: {test_r2:.4f}, Test MAE: {test_mae:.2f}")
         
         metrics[name] = {
-            "r2_score": float(r2),
-            "mae": float(mae)
+            "r2_score": float(test_r2),
+            "mae": float(test_mae)
         }
         trained_models[name] = model
         
-    # Select the best performing model based on R2 score
+    # Select the best performing model based on Test R2 score
     best_model_name = max(metrics, key=lambda k: metrics[k]["r2_score"])
     best_model = trained_models[best_model_name]
     best_r2 = metrics[best_model_name]["r2_score"]
     best_mae = metrics[best_model_name]["mae"]
     
-    print(f"\nBest Performing Model: {best_model_name} with R2: {best_r2:.4f}")
+    print(f"\nBest Performing Model: {best_model_name} with Test R2: {best_r2:.4f}")
     
     # Save the best model
     model_path = os.path.join(backend_dir, "house_model.pkl")
@@ -153,7 +163,6 @@ def main():
                 "importance": float(imp)
             })
     elif best_model_name == "Linear Regression":
-        # For scaled features, absolute coefficients are a good direct proxy for importance
         raw_importances = np.abs(best_model.coef_)
         total_imp = np.sum(raw_importances)
         if total_imp > 0:

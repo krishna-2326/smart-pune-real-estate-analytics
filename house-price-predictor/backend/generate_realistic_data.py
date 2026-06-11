@@ -4,12 +4,10 @@ import pandas as pd
 import numpy as np
 
 def main():
-    print("Generating realistic Pune housing dataset...")
+    print("Generating realistic Pune housing dataset with higher variance...")
     
-    # 5 areas present in the original dataset
     areas = ['Viman Nagar', 'Kalyani Nagar', 'Pimpri-Chinchwad', 'Hinjewadi', 'Koregaon Park']
     
-    # Base rate per sqft for each area based on real-world benchmarks
     base_rates = {
         'Koregaon Park': 12000,
         'Kalyani Nagar': 10000,
@@ -19,15 +17,12 @@ def main():
     }
     
     data = []
-    
-    # Generate 15,000 records for a robust training set
     num_records = 15000
     
     for idx in range(1, num_records + 1):
         area = random.choice(areas)
         bhk = random.choice([1, 2, 3, 4, 5])
         
-        # Correlate square feet with BHK
         if bhk == 1:
             sqft = random.randint(500, 750)
             bathrooms = random.choice([1, 2])
@@ -56,18 +51,18 @@ def main():
         base_rate = base_rates[area]
         price = sqft * base_rate
         
-        # Add value for beds, baths, and garage
+        # Add value for layout
         price += bhk * 350000
         price += bathrooms * 150000
         price += has_garage * 250000
         
-        # Apply depreciation based on house age (0.5% per year, max 20% discount)
+        # Apply depreciation based on house age
         age = 2026 - year_built
         depreciation = min(0.20, age * 0.005)
         price = price * (1 - depreciation)
         
-        # Add a natural ±5% market fluctuation noise
-        noise = random.uniform(0.95, 1.05)
+        # Add a much higher natural ±15% market fluctuation noise (simulates premium buildings vs standard ones)
+        noise = random.uniform(0.85, 1.15)
         price = int(price * noise)
         
         data.append({
@@ -83,12 +78,10 @@ def main():
         
     df = pd.DataFrame(data)
     
-    # Save directly to the user's dataset path
     target_path = "c:/Users/Krishna Gite/Desktop/pune_house/pune_house_prices.csv"
     df.to_csv(target_path, index=False)
     
-    print(f"Successfully generated and wrote {num_records} rows of realistic data to {target_path}")
-    print(df.head())
+    print(f"Successfully generated and wrote {num_records} rows of high-variance data to {target_path}")
 
 if __name__ == "__main__":
     main()
