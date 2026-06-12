@@ -46,9 +46,9 @@ const API_BASE_URL = 'http://localhost:8000';
 const COLORS = ['#6366f1', '#a78bfa', '#ec4899', '#f43f5e', '#3b82f6', '#10b981'];
 
 const DEFAULT_MODELS = [
-  { name: "XGBoost", r2_score: 0.9967, mae: 397299 },
-  { name: "Random Forest", r2_score: 0.9962, mae: 414236 },
-  { name: "Linear Regression", r2_score: 0.7718, mae: 3606717 }
+  { name: "XGBoost", r2_score: 0.9741, mae: 1124215 },
+  { name: "Random Forest", r2_score: 0.9731, mae: 1145310 },
+  { name: "Linear Regression", r2_score: 0.7367, mae: 3767680 }
 ];
 
 const DEFAULT_IMPORTANCES = [
