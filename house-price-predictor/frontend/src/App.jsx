@@ -22,7 +22,9 @@ import {
   ArrowRightLeft,
   ChevronRight,
   TrendingDown,
-  Building
+  Building,
+  Info,
+  X
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -116,12 +118,95 @@ const FALLBACK_TRENDS = {
   ]
 };
 
+// Onboarding Steps details
+const TOUR_STEPS = [
+  {
+    step: 1,
+    section: 'dashboard',
+    target: '#sidebar-nav',
+    title: '🧭 Navigation Console',
+    desc: 'Welcome! Use the navigation sidebar to switch between the Market Dashboard, ML Predictor, Area Analytics, Price Trends, and Tool Suites.'
+  },
+  {
+    step: 2,
+    section: 'dashboard',
+    target: '#overview-stats',
+    title: '📊 Market Summary Stats',
+    desc: 'Get high-level details of Pune real estate, including average listing prices, cheapest vs. premium areas, and total listings count.'
+  },
+  {
+    step: 3,
+    section: 'dashboard',
+    target: '#overview-pie',
+    title: '🍰 BHK Layout Volumes',
+    desc: 'Understand the market distribution of layout sizes (1 BHK to 5 BHK) and view key highlights like high-growth zones and premium areas.'
+  },
+  {
+    step: 4,
+    section: 'predictor',
+    target: '#predictor-inputs',
+    title: '✍️ Adjusting ML Model Inputs',
+    desc: 'Watch the parameters auto-fill: Koregaon Park, 2,200 Sqft, 3 BHK, 3 Baths, built in 2018 with a Garage.',
+    simulate: 'fill_predictor'
+  },
+  {
+    step: 5,
+    section: 'predictor',
+    target: '#predictor-result',
+    title: '🔮 Calculating ML Price',
+    desc: 'Watch the XGBoost model compute the property value and display the R² score, model type, and scaled inputs in real-time.',
+    simulate: 'run_prediction'
+  },
+  {
+    step: 6,
+    section: 'predictor',
+    target: '#predictor-benchmarks',
+    title: '📈 Feature Importances & Metrics',
+    desc: 'Inspect the relative weights assigned to features (Square Feet has 58% weight!) and compare accuracy metrics across algorithms.'
+  },
+  {
+    step: 7,
+    section: 'analytics',
+    target: '#analytics-bar',
+    title: '📍 Average Price by Area',
+    desc: 'Explore average prices across Pune neighborhoods like Koregaon Park, Baner, and Hinjewadi with interactive visualizations.'
+  },
+  {
+    step: 8,
+    section: 'trends',
+    target: '#trends-line',
+    title: '📉 Price Trends & Hotspots',
+    desc: 'Track price appreciation lines over the years (2018-2024) and review top historical growth rankings for smart investing.'
+  },
+  {
+    step: 9,
+    section: 'tools',
+    target: '#compare-card',
+    title: '👥 Area Comparison Suite',
+    desc: 'We are auto-comparing Baner vs Koregaon Park across size, age, beds/baths, price ranges, and appreciation rates.',
+    simulate: 'run_comparison'
+  },
+  {
+    step: 10,
+    section: 'tools',
+    target: '#recommender-card',
+    title: '💰 Investment Recommender',
+    desc: 'Setting budget slider to ₹95 Lakhs. The recommendation engine finds matching areas and suggests the maximum affordable BHK layout.',
+    simulate: 'run_recommendation'
+  }
+];
+
 export default function App() {
   // Navigation State
   const [activeSection, setActiveSection] = useState('dashboard');
 
   // Backend connection status
   const [backendStatus, setBackendStatus] = useState('connecting');
+
+  // Interactive Tour State
+  const [tourStep, setTourStep] = useState(null); // null means tour is closed
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   // Global Metadata
   const [areasList, setAreasList] = useState([]);
@@ -164,10 +249,82 @@ export default function App() {
   const [recommenderResult, setRecommenderResult] = useState(null);
   const [recommenderLoading, setRecommenderLoading] = useState(false);
 
-  // Initial Load
+  // Initial Load & Welcome Trigger
   useEffect(() => {
     fetchMetadataAndSummary();
+    const visited = localStorage.getItem('pune_estatoria_visited');
+    if (!visited) {
+      const timer = setTimeout(() => {
+        setShowWelcome(true);
+      }, 800);
+      return () => clearTimeout(timer);
+    }
   }, []);
+
+  // Tour Auto-simulation and Scroll Handling
+  useEffect(() => {
+    if (tourStep === null) {
+      setIsSimulating(false);
+      return;
+    }
+
+    const stepInfo = TOUR_STEPS[tourStep - 1];
+    if (!stepInfo) return;
+
+    // 1. Switch active section tab automatically
+    if (activeSection !== stepInfo.section) {
+      setActiveSection(stepInfo.section);
+    }
+
+    // 2. Wait for rendering, then scroll and simulate actions
+    const runStepAction = async () => {
+      setIsSimulating(true);
+      
+      // Allow DOM to update tab contents
+      await new Promise(resolve => setTimeout(resolve, 350));
+
+      // Scroll target element into view
+      if (stepInfo.target) {
+        const el = document.querySelector(stepInfo.target);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+
+      // Execute simulations
+      if (stepInfo.simulate === 'fill_predictor') {
+        setPredArea('Koregaon Park');
+        setPredSqft(2200);
+        setPredBhk(3);
+        setPredBaths(3);
+        setPredYear(2018);
+        setPredGarage(true);
+      } else if (stepInfo.simulate === 'run_prediction') {
+        setPredArea('Koregaon Park');
+        setPredSqft(2200);
+        setPredBhk(3);
+        setPredBaths(3);
+        setPredYear(2018);
+        setPredGarage(true);
+        // Brief delay for visuals, then run
+        await new Promise(resolve => setTimeout(resolve, 300));
+        handlePredict();
+      } else if (stepInfo.simulate === 'run_comparison') {
+        setCompareArea1('Baner');
+        setCompareArea2('Koregaon Park');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        handleCompare();
+      } else if (stepInfo.simulate === 'run_recommendation') {
+        setBudgetLakhs(95);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        handleRecommend();
+      }
+
+      setIsSimulating(false);
+    };
+
+    runStepAction();
+  }, [tourStep]);
 
   // Sync details when navigation tab changes
   useEffect(() => {
@@ -261,8 +418,36 @@ export default function App() {
     }
   };
 
+  // Onboarding Tour Navigation helpers
+  const startTour = () => {
+    setActiveSection('dashboard');
+    setTourStep(1);
+  };
+
+  const handleNextStep = () => {
+    if (tourStep < TOUR_STEPS.length) {
+      const nextStep = tourStep + 1;
+      const stepMeta = TOUR_STEPS.find(s => s.step === nextStep);
+      setActiveSection(stepMeta.section);
+      setTourStep(nextStep);
+    } else {
+      setTourStep(null);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (tourStep > 1) {
+      const prevStep = tourStep - 1;
+      const stepMeta = TOUR_STEPS.find(s => s.step === prevStep);
+      setActiveSection(stepMeta.section);
+      setTourStep(prevStep);
+    }
+  };
+
   const handlePredict = async (e) => {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
     setPredLoading(true);
     setPredictorErr('');
 
@@ -292,7 +477,7 @@ export default function App() {
         setPredResult({
           predicted_price: est * (0.97 + Math.random() * 0.06),
           model_used: "XGBoost",
-          r2_score: 0.9967
+          r2_score: 0.9741
         });
         setPredLoading(false);
       }, 700);
@@ -434,7 +619,12 @@ export default function App() {
     <div className="min-h-screen flex flex-col md:flex-row bg-[#0b0f19]">
       
       {/* Left Sidebar Navigation Panel */}
-      <aside className="w-full md:w-64 bg-slate-950/60 border-b md:border-b-0 md:border-r border-white/5 backdrop-blur-lg flex flex-col md:fixed md:h-screen z-30">
+      <aside 
+        id="sidebar-nav" 
+        className={`w-full md:w-64 bg-slate-950/60 border-b md:border-b-0 md:border-r border-white/5 backdrop-blur-lg flex flex-col md:fixed md:h-screen transition-all duration-300 ${
+          tourStep === 1 ? 'z-55 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.6)] scale-[1.01]' : 'z-30'
+        }`}
+      >
         <div className="p-6 flex items-center space-x-3 border-b border-white/5">
           <div className="bg-gradient-to-tr from-indigo-500 to-purple-500 p-2 rounded-xl shadow-lg shadow-indigo-500/10">
             <Home className="w-5 h-5 text-white" />
@@ -460,7 +650,10 @@ export default function App() {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => {
+                  setActiveSection(item.id);
+                  if (tourStep !== null) setTourStep(null); // cancel tour if user clicks tabs manually
+                }}
                 className={`w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
                   isActive
                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 scale-[1.02]'
@@ -499,9 +692,21 @@ export default function App() {
             {activeSection === 'tools' && 'Comparison & Investment Suite'}
           </h2>
           
-          <span className="text-[10px] text-slate-400 font-bold bg-slate-950/40 border border-white/5 px-3 py-1 rounded-xl">
-            Pune Real Estate • Active Data
-          </span>
+          {/* Quick Tour Button */}
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={startTour}
+              className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/25 transition-all space-x-1"
+              title="Start Onboarding Tour"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Quick Tour</span>
+            </button>
+            
+            <span className="text-[10px] text-slate-400 font-bold bg-slate-950/40 border border-white/5 px-3 py-1 rounded-xl hidden sm:inline-block">
+              Pune Real Estate • Active Data
+            </span>
+          </div>
         </header>
 
         <main className="flex-grow p-6 sm:p-8 max-w-6xl w-full mx-auto space-y-8">
@@ -509,7 +714,12 @@ export default function App() {
           {/* ================= SECTION 1: MARKET OVERVIEW DASHBOARD ================= */}
           {activeSection === 'dashboard' && (
             <div className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div 
+                id="overview-stats" 
+                className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-300 rounded-3xl ${
+                  tourStep === 2 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] bg-slate-950/80 p-2' : ''
+                }`}
+              >
                 {summaryLoading ? (
                   Array(4).fill(0).map((_, i) => (
                     <div key={i} className="glass-panel rounded-3xl p-6 h-32 animate-pulse flex flex-col justify-between">
@@ -555,7 +765,12 @@ export default function App() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div 
+                id="overview-pie" 
+                className={`grid grid-cols-1 lg:grid-cols-12 gap-8 transition-all duration-300 rounded-3xl ${
+                  tourStep === 3 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] bg-slate-950/80 p-2' : ''
+                }`}
+              >
                 <div className="lg:col-span-7 glass-panel rounded-3xl p-6 shadow-xl flex flex-col justify-between min-h-[380px]">
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center">
                     <Layers className="w-4 h-4 text-indigo-400 mr-2" /> BHK distribution in pune market
@@ -674,7 +889,12 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               <div className="lg:col-span-5">
-                <div className="glass-panel rounded-3xl p-6 shadow-xl space-y-6">
+                <div 
+                  id="predictor-inputs" 
+                  className={`glass-panel rounded-3xl p-6 shadow-xl space-y-6 transition-all duration-300 ${
+                    tourStep === 4 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] scale-[1.01] bg-slate-900/90' : ''
+                  }`}
+                >
                   <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center border-b border-white/5 pb-3">
                     <Compass className="w-4.5 h-4.5 text-indigo-400 mr-2" /> ML Model Inputs
                   </h2>
@@ -823,7 +1043,12 @@ export default function App() {
               </div>
 
               <div className="lg:col-span-7 space-y-6">
-                <div className="glass-panel rounded-3xl p-6 shadow-xl min-h-[220px] flex flex-col justify-center relative overflow-hidden">
+                <div 
+                  id="predictor-result" 
+                  className={`glass-panel rounded-3xl p-6 shadow-xl min-h-[220px] flex flex-col justify-center relative overflow-hidden transition-all duration-300 ${
+                    tourStep === 5 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] scale-[1.01] bg-slate-900/90' : ''
+                  }`}
+                >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
                   
                   {!predResult && !predLoading ? (
@@ -874,7 +1099,12 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="glass-panel rounded-3xl p-6 shadow-xl min-h-[300px]">
+                <div 
+                  id="predictor-benchmarks" 
+                  className={`glass-panel rounded-3xl p-6 shadow-xl min-h-[300px] transition-all duration-300 ${
+                    tourStep === 6 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] scale-[1.01] bg-slate-900/90' : ''
+                  }`}
+                >
                   <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-5">
                     <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
                       {chartOrTableTab === 'chart' ? (
@@ -953,7 +1183,12 @@ export default function App() {
           {/* ================= SECTION 3: AREA ANALYTICS DASHBOARD ================= */}
           {activeSection === 'analytics' && (
             <div className="space-y-8">
-              <div className="glass-panel rounded-3xl p-6 shadow-xl min-h-[380px] flex flex-col justify-between">
+              <div 
+                id="analytics-bar" 
+                className={`glass-panel rounded-3xl p-6 shadow-xl min-h-[380px] flex flex-col justify-between transition-all duration-300 ${
+                  tourStep === 7 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] scale-[1.01] bg-slate-900/90' : ''
+                }`}
+              >
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center">
                   <BarChart2 className="w-4.5 h-4.5 text-indigo-400 mr-2" /> Average property valuation by pune area
                 </h3>
@@ -1029,7 +1264,12 @@ export default function App() {
           {/* ================= SECTION 4: PRICE TREND ANALYSIS ================= */}
           {activeSection === 'trends' && (
             <div className="space-y-8">
-              <div className="glass-panel rounded-3xl p-6 shadow-xl min-h-[380px] flex flex-col justify-between">
+              <div 
+                id="trends-line" 
+                className={`glass-panel rounded-3xl p-6 shadow-xl min-h-[380px] flex flex-col justify-between transition-all duration-300 ${
+                  tourStep === 8 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] scale-[1.01] bg-slate-900/90' : ''
+                }`}
+              >
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center">
                   <TrendingUp className="w-4.5 h-4.5 text-indigo-400 mr-2" /> Year-wise Price Growth Trend (2018-2024)
                 </h3>
@@ -1100,7 +1340,12 @@ export default function App() {
               
               {/* Left Column: Property Comparison Tool */}
               <div className="lg:col-span-6 space-y-6">
-                <div className="glass-panel rounded-3xl p-6 shadow-xl space-y-5">
+                <div 
+                  id="compare-card" 
+                  className={`glass-panel rounded-3xl p-6 shadow-xl space-y-5 transition-all duration-300 ${
+                    tourStep === 9 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] scale-[1.01] bg-slate-900/90' : ''
+                  }`}
+                >
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center border-b border-white/5 pb-3">
                     <ArrowRightLeft className="w-4.5 h-4.5 text-indigo-400 mr-2" /> Area Comparison Suite
                   </h3>
@@ -1210,7 +1455,12 @@ export default function App() {
 
               {/* Right Column: Investment Budget Recommender */}
               <div className="lg:col-span-6 space-y-6">
-                <div className="glass-panel rounded-3xl p-6 shadow-xl space-y-5">
+                <div 
+                  id="recommender-card" 
+                  className={`glass-panel rounded-3xl p-6 shadow-xl space-y-5 transition-all duration-300 ${
+                    tourStep === 10 ? 'relative z-50 ring-4 ring-indigo-500/70 shadow-[0_0_45px_rgba(99,102,241,0.5)] scale-[1.01] bg-slate-900/90' : ''
+                  }`}
+                >
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center border-b border-white/5 pb-3">
                     <Compass className="w-4.5 h-4.5 text-indigo-400 mr-2" /> Investment Recommender
                   </h3>
@@ -1239,7 +1489,6 @@ export default function App() {
                     {recommenderLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Find Investment Matches</span>}
                   </button>
 
-                  {/* Recommendations Display */}
                   {recommenderResult && recommenderResult.budget_status === 'low' && (
                     <div className="space-y-4 pt-3 border-t border-white/5 text-xs animate-fade-in">
                       <div className="p-4 bg-red-950/20 border border-red-900/30 rounded-2xl">
@@ -1287,6 +1536,126 @@ export default function App() {
           )}
 
         </main>
+
+        {/* Dark backdrop overlay to dim screen during tour highlight */}
+        {tourStep !== null && (
+          <div className="fixed inset-0 bg-[#05070f]/80 z-40 transition-opacity duration-300" />
+        )}
+
+        {/* Floating Interactive Onboarding Tour Panel */}
+        {tourStep !== null && (
+          <div className="fixed bottom-6 right-6 md:right-8 w-[340px] z-50 glass-panel rounded-3xl p-5 shadow-2xl border border-indigo-500/30 animate-fade-in space-y-4">
+            <div className="flex justify-between items-start">
+              <span className="px-2.5 py-0.5 rounded-md bg-indigo-600/10 text-indigo-400 text-[10px] font-extrabold uppercase tracking-wider">
+                Step {tourStep} of {TOUR_STEPS.length}
+              </span>
+              <button 
+                onClick={() => setTourStep(null)}
+                className="text-slate-400 hover:text-white transition-colors"
+                disabled={isSimulating}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div>
+              <h4 className="text-xs font-extrabold text-white mb-1.5 flex items-center">
+                {TOUR_STEPS.find(s => s.step === tourStep).title}
+                {isSimulating && (
+                  <span className="ml-2 flex items-center text-[10px] font-bold text-indigo-400 animate-pulse">
+                    <Loader2 className="w-3 h-3 animate-spin mr-1" /> Simulating...
+                  </span>
+                )}
+              </h4>
+              <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
+                {TOUR_STEPS.find(s => s.step === tourStep).desc}
+              </p>
+            </div>
+            
+            <div className="flex justify-between items-center pt-2 border-t border-white/5">
+              <button
+                onClick={handlePrevStep}
+                disabled={tourStep === 1 || isSimulating}
+                className="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-slate-900 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                Back
+              </button>
+              
+              <div className="flex space-x-1">
+                {TOUR_STEPS.map(s => (
+                  <span 
+                    key={s.step} 
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                      s.step === tourStep ? 'bg-indigo-500 w-3' : 'bg-slate-800'
+                    }`}
+                  ></span>
+                ))}
+              </div>
+              
+              <button
+                onClick={handleNextStep}
+                disabled={isSimulating}
+                className="px-3.5 py-1.5 rounded-lg text-[10px] font-bold bg-indigo-600 text-white hover:bg-indigo-500 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {tourStep === TOUR_STEPS.length ? 'Finish' : 'Next'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Welcome Modal for First-time Visitors */}
+        {showWelcome && (
+          <div className="fixed inset-0 flex items-center justify-center z-55 p-4">
+            <div className="fixed inset-0 bg-[#05070f]/85 backdrop-blur-md" onClick={() => {
+              setShowWelcome(false);
+              localStorage.setItem('pune_estatoria_visited', 'true');
+            }}></div>
+            <div className="glass-panel rounded-3xl p-8 max-w-md w-full relative z-10 shadow-2xl border border-indigo-500/25 animate-fade-in text-center space-y-6">
+              <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/20">
+                <Home className="w-8 h-8 text-white" />
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-black text-white tracking-wide uppercase font-outfit">
+                  Welcome to Pune Estatoria
+                </h3>
+                <span className="text-[10px] text-indigo-400 font-extrabold uppercase tracking-widest block mt-1">
+                  Smart Pune Real Estate Analytics
+                </span>
+              </div>
+              
+              <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+                Explore real estate statistics, machine learning valuation models (XGBoost/Random Forest), price growth trends, and side-by-side area comparisons. 
+              </p>
+              
+              <div className="p-3.5 bg-slate-950/40 border border-white/5 rounded-2xl text-[10px] text-slate-400 font-bold leading-normal">
+                Let's run a quick 10-step interactive tour to show you how to use the predictive models and analysis dashboards in real-time.
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  onClick={() => {
+                    setShowWelcome(false);
+                    localStorage.setItem('pune_estatoria_visited', 'true');
+                    startTour();
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/10 transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  🎯 Start Guided Tour
+                </button>
+                <button
+                  onClick={() => {
+                    setShowWelcome(false);
+                    localStorage.setItem('pune_estatoria_visited', 'true');
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-slate-900 border border-white/5 text-slate-300 hover:text-white font-bold text-xs transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  Explore on My Own
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <footer className="mt-auto border-t border-white/5 py-4 bg-slate-950/40 text-center text-[10px] text-slate-500 font-bold">
           Smart Pune Real Estate Analytics Platform • Deployed ML Pipeline
